@@ -6,13 +6,36 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1126AD43054EE7600466A97 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AD33054EE7600466A97 /* FirebaseAuth */; };
+		A1126AD63054EE7600466A97 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AD53054EE7600466A97 /* FirebaseFirestore */; };
+		A1126AD83054EE7600466A97 /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AD73054EE7600466A97 /* FirebaseInAppMessaging-Beta */; };
+		A1126ADA3054EE7600466A97 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AD93054EE7600466A97 /* FirebaseStorage */; };
+		A1126AF73054F31200466A97 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AF63054F31200466A97 /* GoogleSignIn */; };
+		A1126AF93054F31200466A97 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AF83054F31200466A97 /* GoogleSignInSwift */; };
+		A1126B0B3054FEFB00466A97 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = A1126B0A3054FEFB00466A97 /* FirebaseMessaging */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A1126A8A3054EAB100466A97 /* ebiketrader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ebiketrader.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A1126AFB3054F33200466A97 /* Exceptions for "ebiketrader" folder in "ebiketrader" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A1126A893054EAB100466A97 /* ebiketrader */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A1126A8C3054EAB100466A97 /* ebiketrader */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A1126AFB3054F33200466A97 /* Exceptions for "ebiketrader" folder in "ebiketrader" target */,
+			);
 			path = ebiketrader;
 			sourceTree = "<group>";
 		};
@@ -23,6 +46,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1126AF73054F31200466A97 /* GoogleSignIn in Frameworks */,
+				A1126AD43054EE7600466A97 /* FirebaseAuth in Frameworks */,
+				A1126B0B3054FEFB00466A97 /* FirebaseMessaging in Frameworks */,
+				A1126ADA3054EE7600466A97 /* FirebaseStorage in Frameworks */,
+				A1126AF93054F31200466A97 /* GoogleSignInSwift in Frameworks */,
+				A1126AD63054EE7600466A97 /* FirebaseFirestore in Frameworks */,
+				A1126AD83054EE7600466A97 /* FirebaseInAppMessaging-Beta in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				A1126A8C3054EAB100466A97 /* ebiketrader */,
+				A1126B093054FEFB00466A97 /* Frameworks */,
 				A1126A8B3054EAB100466A97 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +74,13 @@
 				A1126A8A3054EAB100466A97 /* ebiketrader.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A1126B093054FEFB00466A97 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -65,6 +103,13 @@
 			);
 			name = ebiketrader;
 			packageProductDependencies = (
+				A1126AD33054EE7600466A97 /* FirebaseAuth */,
+				A1126AD53054EE7600466A97 /* FirebaseFirestore */,
+				A1126AD73054EE7600466A97 /* FirebaseInAppMessaging-Beta */,
+				A1126AD93054EE7600466A97 /* FirebaseStorage */,
+				A1126AF63054F31200466A97 /* GoogleSignIn */,
+				A1126AF83054F31200466A97 /* GoogleSignInSwift */,
+				A1126B0A3054FEFB00466A97 /* FirebaseMessaging */,
 			);
 			productName = ebiketrader;
 			productReference = A1126A8A3054EAB100466A97 /* ebiketrader.app */;
@@ -94,6 +139,10 @@
 			);
 			mainGroup = A1126A813054EAB100466A97;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				A1126AF53054F31200466A97 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A1126A8B3054EAB100466A97 /* Products */;
 			projectDirPath = "";
@@ -178,7 +227,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -236,7 +285,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -251,11 +300,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ebiketrader/ebiketrader.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = F54YTSCT8G;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ebiketrader/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "eBikeTrader uses your camera so you can photograph your bike while listing it.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -283,11 +335,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ebiketrader/ebiketrader.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = F54YTSCT8G;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ebiketrader/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "eBikeTrader uses your camera so you can photograph your bike while listing it.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -332,6 +387,63 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.19.1;
+			};
+		};
+		A1126AF53054F31200466A97 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1126AD33054EE7600466A97 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		A1126AD53054EE7600466A97 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		A1126AD73054EE7600466A97 /* FirebaseInAppMessaging-Beta */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseInAppMessaging-Beta";
+		};
+		A1126AD93054EE7600466A97 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		A1126AF63054F31200466A97 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1126AF53054F31200466A97 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		A1126AF83054F31200466A97 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1126AF53054F31200466A97 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+		A1126B0A3054FEFB00466A97 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A1126A823054EAB100466A97 /* Project object */;
 }

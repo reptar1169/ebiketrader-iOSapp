@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>254293359920-5gikhvlqra305k9oifcl5vaqk0nhpb33.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.254293359920-5gikhvlqra305k9oifcl5vaqk0nhpb33</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBtSA6BjMUeLrtuMmv48jeLDTHZKSAEFMM</string>
+	<key>GCM_SENDER_ID</key>
+	<string>254293359920</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.reptar.ebiketrader</string>
+	<key>PROJECT_ID</key>
+	<string>ebiketrader-12409</string>
+	<key>STORAGE_BUCKET</key>
+	<string>ebiketrader-12409.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:254293359920:ios:7d629f1df2c6c228119cf5</string>
+</dict>
+</plist>
