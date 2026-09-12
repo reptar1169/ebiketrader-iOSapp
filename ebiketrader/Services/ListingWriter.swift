@@ -215,7 +215,6 @@ enum ListingWriter {
         input: ListingInput,
         sellerId: String,
         sellerName: String,
-        sellerEmail: String,
         plan: [PhotoPlanItem],
         progress: ((Int, Int) -> Void)? = nil
     ) async throws -> String {
@@ -223,7 +222,9 @@ enum ListingWriter {
         data["photos"] = [String]()
         data["sellerId"] = sellerId
         data["sellerName"] = sellerName
-        data["sellerEmail"] = sellerEmail
+        // No sellerEmail: listing documents are world-readable per
+        // firestore.rules, so anything written here is public. The address
+        // stays on the private users/{uid} document.
         data["status"] = ListingStatus.active.rawValue
         // firestore.rules requires this to be exactly 0 on create, and lat/lng
         // to be absent — they're filled in by the geocoding Cloud Function.

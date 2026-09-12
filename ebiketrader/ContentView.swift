@@ -11,6 +11,7 @@ struct ContentView: View {
     @StateObject private var auth = AuthStore()
     @StateObject private var favorites = FavoriteStore()
     @StateObject private var conversations = ConversationStore()
+    @StateObject private var blocks = BlockStore()
     @StateObject private var push = PushService.shared
 
     @State private var selectedTab = Tab.browse
@@ -46,6 +47,7 @@ struct ContentView: View {
         .environmentObject(auth)
         .environmentObject(favorites)
         .environmentObject(conversations)
+        .environmentObject(blocks)
         .environmentObject(push)
         // Favorites, conversations and the device's push registration are all
         // per-user, so they get re-pointed whenever the signed-in user changes
@@ -53,11 +55,13 @@ struct ContentView: View {
         .onAppear {
             favorites.bind(to: auth.uid)
             conversations.bind(to: auth.uid)
+            blocks.bind(to: auth.uid)
             push.bind(uid: auth.uid)
         }
         .onChange(of: auth.uid) { _, uid in
             favorites.bind(to: uid)
             conversations.bind(to: uid)
+            blocks.bind(to: uid)
             push.bind(uid: uid)
         }
         // A tapped notification lands on PushService; switching tabs here

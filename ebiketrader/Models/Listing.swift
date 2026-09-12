@@ -73,7 +73,6 @@ struct Listing: Identifiable, Hashable {
     var photos: [String]
     var sellerId: String
     var sellerName: String
-    var sellerEmail: String
     var status: ListingStatus
     /// Maintained server-side by the favorite Cloud Function triggers; also
     /// read-only to clients per firestore.rules.
@@ -132,7 +131,6 @@ extension Listing {
         self.photos = data["photos"] as? [String] ?? []
         self.sellerId = FirestoreValue.string(data["sellerId"])
         self.sellerName = FirestoreValue.string(data["sellerName"], default: "Seller")
-        self.sellerEmail = FirestoreValue.string(data["sellerEmail"])
         self.status = ListingStatus(rawValue: FirestoreValue.string(data["status"])) ?? .active
         self.favoriteCount = FirestoreValue.int(data["favoriteCount"]) ?? 0
         self.createdAt = FirestoreValue.millis(data["createdAt"])

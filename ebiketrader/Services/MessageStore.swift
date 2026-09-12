@@ -11,7 +11,11 @@ import FirebaseFirestore
 /// src/lib/messages.ts. Kept in one place so the id scheme can't drift
 /// between the app and the website — a mismatch would silently start a
 /// second thread for a buyer who already had one.
-enum Messaging {
+/// Named ChatService rather than the more obvious "Messaging" because that
+/// would shadow FirebaseMessaging's own Messaging class — a same-module type
+/// wins over an imported one, which breaks push registration in any file that
+/// imports both.
+enum ChatService {
     static let collection = "conversations"
 
     /// Deterministic id: one thread per listing per buyer, on both clients.
@@ -180,7 +184,7 @@ final class ConversationStore: ObservableObject {
         }
 
         isLoading = true
-        let collection = Firestore.firestore().collection(Messaging.collection)
+        let collection = Firestore.firestore().collection(ChatService.collection)
 
         buyerRegistration = collection
             .whereField("buyerId", isEqualTo: uid)
@@ -236,7 +240,7 @@ final class ThreadStore: ObservableObject {
     func startIfNeeded() {
         guard registration == nil else { return }
         registration = Firestore.firestore()
-            .collection(Messaging.collection)
+            .collection(ChatService.collection)
             .document(conversationId)
             .collection("messages")
             .order(by: "createdAt", descending: false)
@@ -253,19 +257,47 @@ final class ThreadStore: ObservableObject {
             }
     }
 
+    /// Returns whether it went through, so the caller can put the draft back
+    /// rather than swallowing what the person typed.
     @MainActor
-    func send(text: String, senderId: String) async {
+    func send(text: String, senderId: String) async -> Bool {
         do {
-            try await Messaging.send(conversationId: conversationId, senderId: senderId, text: text)
+            try await ChatService.send(conversationId: conversationId, senderId: senderId, text: text)
+            errorMessage = nil
+            return true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = Self.sendFailureMessage(for: error)
+            return false
         }
+    }
+
+    /// A rejected write here almost always means the recipient has blocked
+    /// the sender — firestore.rules refuses messages across a block.
+    ///
+    /// That is deliberately NOT said out loud. Telling someone they have been
+    /// blocked invites exactly what blocking is meant to stop: a new account,
+    /// or the argument moving somewhere with no block button. It is also the
+    /// blocker's private business. Every major messaging product does the
+    /// same thing — the message simply does not arrive. So the copy stays
+    /// neutral and true, and the draft is handed back so nothing is lost.
+    ///
+    /// Genuine failures (offline, timeout) keep their real message, because
+    /// there the person can actually do something about it. Matched on the
+    /// numeric code rather than FirestoreErrorCode, which has shifted shape
+    /// between Firebase major versions.
+    private static func sendFailureMessage(for error: Error) -> String {
+        let nsError = error as NSError
+        let isPermissionDenied =
+            nsError.domain == "FIRFirestoreErrorDomain" && nsError.code == 7
+        return isPermissionDenied
+            ? "This message couldn't be sent."
+            : error.localizedDescription
     }
 
     @MainActor
     func delete(_ message: Message) async {
         do {
-            try await Messaging.delete(conversationId: conversationId, messageId: message.id)
+            try await ChatService.delete(conversationId: conversationId, messageId: message.id)
         } catch {
             errorMessage = error.localizedDescription
         }

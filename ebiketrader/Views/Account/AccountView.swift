@@ -9,6 +9,9 @@ import UserNotifications
 struct AccountView: View {
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var push: PushService
+    @EnvironmentObject private var blocks: BlockStore
+
+    @State private var confirmDelete = false
 
     var body: some View {
         NavigationStack {
@@ -48,8 +51,33 @@ struct AccountView: View {
                     Label("My listings", systemImage: "list.bullet.rectangle")
                 }
 
+                NavigationLink {
+                    BlockedUsersView()
+                } label: {
+                    HStack {
+                        Label("Blocked users", systemImage: "hand.raised.slash")
+                        if !blocks.blocked.isEmpty {
+                            Spacer()
+                            Text("\(blocks.blocked.count)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
                 Link(destination: URL(string: "https://ebiketrader.net")!) {
                     Label("Open ebiketrader.net", systemImage: "safari")
+                }
+            }
+
+            Section("Legal") {
+                Link(destination: Legal.support) {
+                    Label("Help & support", systemImage: "questionmark.circle")
+                }
+                Link(destination: Legal.privacy) {
+                    Label("Privacy Policy", systemImage: "hand.raised")
+                }
+                Link(destination: Legal.terms) {
+                    Label("Terms of Use", systemImage: "doc.text")
                 }
             }
 
@@ -59,6 +87,30 @@ struct AccountView: View {
                 Text("Notifications")
             } footer: {
                 Text("Get a push when someone messages you about a listing.")
+            }
+
+            Section {
+                Button("Delete account", role: .destructive) {
+                    confirmDelete = true
+                }
+                .disabled(auth.isWorking)
+
+                // Deletion is an Apple-required flow, so a failure must not
+                // be silent: without this the spinner just vanishes and the
+                // account is still there, with no explanation.
+                if let error = auth.errorMessage {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                        Text(error)
+                        Spacer(minLength: 8)
+                        Button("Dismiss") { auth.errorMessage = nil }
+                            .font(.caption.weight(.medium))
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                }
+            } footer: {
+                Text("Permanently removes your account, your listings and their photos, and your saved listings. Conversations stay visible to the other person, with your name removed. This can't be undone.")
             }
 
             Section {
@@ -76,6 +128,30 @@ struct AccountView: View {
             }
         }
         .task { await push.refreshAuthorizationStatus() }
+        .confirmationDialog(
+            "Delete your account?",
+            isPresented: $confirmDelete,
+            titleVisibility: .visible
+        ) {
+            Button("Delete my account", role: .destructive) {
+                Task {
+                    if let uid = auth.uid {
+                        await push.unregister(uid: uid)
+                    }
+                    await auth.deleteAccount()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently deletes your account and your listings. It can't be undone.")
+        }
+        .overlay {
+            if auth.isWorking {
+                ProgressView("Deleting your account…")
+                    .padding(20)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+        }
     }
 
     @ViewBuilder

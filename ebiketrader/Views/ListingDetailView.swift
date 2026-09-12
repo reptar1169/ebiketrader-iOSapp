@@ -10,6 +10,7 @@ struct ListingDetailView: View {
 
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var favorites: FavoriteStore
+    @EnvironmentObject private var blocks: BlockStore
 
     @State private var showSignIn = false
     @State private var openThread: ConversationSummary?
@@ -19,6 +20,8 @@ struct ListingDetailView: View {
     @State private var showEdit = false
     @State private var confirmDelete = false
     @State private var isBusy = false
+    @State private var showReport = false
+    @State private var confirmBlock = false
 
     @Environment(\.dismiss) private var dismiss
 
@@ -42,9 +45,14 @@ struct ListingDetailView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Description")
                                 .font(.subheadline.weight(.semibold))
-                            Text(listing.listingDescription)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                            // Sellers routinely put a serial number, a spec
+                            // sheet link or a phone number in here, so this
+                            // is a real UITextView (see SelectableText) and
+                            // you can drag-select part of it.
+                            SelectableText(
+                                text: listing.listingDescription,
+                                color: .secondaryLabel
+                            )
                         }
                     }
 
@@ -61,6 +69,7 @@ struct ListingDetailView: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
             }
+            .readableWidth()
         }
         .navigationTitle(listing.makeModel.isEmpty ? "Listing" : listing.makeModel)
         .navigationBarTitleDisplayMode(.inline)
@@ -84,8 +93,39 @@ struct ListingDetailView: View {
                     }
                 }
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                if !isOwner {
+                    Menu {
+                        Button {
+                            if auth.isSignedIn { showReport = true } else { showSignIn = true }
+                        } label: {
+                            Label("Report listing", systemImage: "flag")
+                        }
+                        Button(role: .destructive) {
+                            if auth.isSignedIn { confirmBlock = true } else { showSignIn = true }
+                        } label: {
+                            Label("Block this seller", systemImage: "hand.raised.slash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+            }
         }
         .onAppear { store.startIfNeeded() }
+        .sheet(isPresented: $showReport) {
+            ReportListingSheet(listing: listing)
+        }
+        .confirmationDialog(
+            "Block \(listing.sellerName)?",
+            isPresented: $confirmBlock,
+            titleVisibility: .visible
+        ) {
+            Button("Block", role: .destructive) { blockSeller() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Their listings will stop appearing for you, and neither of you will be able to message the other. You can undo this under Account → Blocked users.")
+        }
         .sheet(isPresented: $showEdit) {
             NavigationStack {
                 ListingFormView(existing: listing)
@@ -231,6 +271,19 @@ struct ListingDetailView: View {
         }
     }
 
+    private func blockSeller() {
+        Task {
+            do {
+                try await blocks.block(userId: listing.sellerId, displayName: listing.sellerName)
+                // The feed filters on the block, so there's nothing sensible
+                // left on this screen.
+                dismiss()
+            } catch {
+                threadError = error.localizedDescription
+            }
+        }
+    }
+
     private func toggleSold() {
         isBusy = true
         let next: ListingStatus = listing.status == .sold ? .active : .sold
@@ -270,12 +323,12 @@ struct ListingDetailView: View {
 
         Task {
             do {
-                _ = try await Messaging.getOrCreateConversation(
+                _ = try await ChatService.getOrCreateConversation(
                     listing: listing,
                     buyerId: uid,
                     buyerName: auth.displayName
                 )
-                openThread = Messaging.localSummary(
+                openThread = ChatService.localSummary(
                     listing: listing,
                     buyerId: uid,
                     buyerName: auth.displayName
@@ -298,9 +351,12 @@ private struct SpecRow: View {
                 Text(label)
                     .foregroundStyle(.secondary)
                 Spacer(minLength: 12)
-                Text(value)
-                    .fontWeight(.medium)
-                    .multilineTextAlignment(.trailing)
+                SelectableText(
+                    text: value,
+                    font: .preferredFont(forTextStyle: .subheadline).withWeight(.medium),
+                    alignment: .right,
+                    hugsContent: true
+                )
             }
             .font(.subheadline)
             .padding(.vertical, 9)

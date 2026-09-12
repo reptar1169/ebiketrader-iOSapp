@@ -11,10 +11,13 @@ import SwiftUI
 struct SavedView: View {
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var favorites: FavoriteStore
+    @EnvironmentObject private var blocks: BlockStore
     @StateObject private var store = ListingStore(status: nil)
 
+    @State private var showSignIn = false
+
     private var saved: [Listing] {
-        store.listings.filter { favorites.isFavorite($0.id) }
+        store.listings.filter { favorites.isFavorite($0.id) && !blocks.isBlocked($0.sellerId) }
     }
 
     var body: some View {
@@ -25,6 +28,9 @@ struct SavedView: View {
                         Label("Sign in to save listings", systemImage: "heart")
                     } description: {
                         Text("Tap the heart on any listing to keep it here.")
+                    } actions: {
+                        Button("Sign in") { showSignIn = true }
+                            .buttonStyle(.borderedProminent)
                     }
                 } else if store.isLoading && store.listings.isEmpty {
                     ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -47,6 +53,7 @@ struct SavedView: View {
             }
             .navigationTitle("Saved")
         }
+        .signInSheet(isPresented: $showSignIn)
         .onAppear { store.startIfNeeded() }
     }
 }

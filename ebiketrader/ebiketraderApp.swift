@@ -45,6 +45,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
         Messaging.messaging().apnsToken = deviceToken
+        print("[push] APNs token registered (\(deviceToken.count) bytes)")
     }
 
     func application(

@@ -7,13 +7,16 @@ import SwiftUI
 
 struct BrowseView: View {
     @StateObject private var store = ListingStore()
+    @EnvironmentObject private var blocks: BlockStore
 
     @State private var search = ""
     @State private var filters = ListingFilters()
     @State private var showFilters = false
 
     private var visible: [Listing] {
-        store.listings.applying(filters, search: search)
+        store.listings
+            .filter { !blocks.isBlocked($0.sellerId) }
+            .applying(filters, search: search)
     }
 
     private var availableBrands: [String] {

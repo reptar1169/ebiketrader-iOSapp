@@ -9,6 +9,7 @@ struct SellTabView: View {
     @EnvironmentObject private var auth: AuthStore
 
     @State private var postedListingId: String?
+    @State private var showSignIn = false
     /// Bumped after a successful post so the form rebuilds empty — the tab
     /// root can't dismiss itself the way a pushed or sheeted form would.
     @State private var formToken = UUID()
@@ -29,6 +30,7 @@ struct SellTabView: View {
                 }
             }
         }
+        .signInSheet(isPresented: $showSignIn)
         .alert(
             "Listing posted",
             isPresented: Binding(
@@ -50,10 +52,8 @@ struct SellTabView: View {
                 } description: {
                     Text("You'll need an account so buyers can message you.")
                 }
-                NavigationLink {
-                    SignInView()
-                        .navigationTitle("Sign in")
-                        .navigationBarTitleDisplayMode(.inline)
+                Button {
+                    showSignIn = true
                 } label: {
                     Text("Sign in or create an account")
                         .font(.subheadline.weight(.semibold))

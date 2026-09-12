@@ -9,11 +9,11 @@
 /* Begin PBXBuildFile section */
 		A1126AD43054EE7600466A97 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AD33054EE7600466A97 /* FirebaseAuth */; };
 		A1126AD63054EE7600466A97 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AD53054EE7600466A97 /* FirebaseFirestore */; };
-		A1126AD83054EE7600466A97 /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AD73054EE7600466A97 /* FirebaseInAppMessaging-Beta */; };
 		A1126ADA3054EE7600466A97 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AD93054EE7600466A97 /* FirebaseStorage */; };
 		A1126AF73054F31200466A97 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AF63054F31200466A97 /* GoogleSignIn */; };
 		A1126AF93054F31200466A97 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A1126AF83054F31200466A97 /* GoogleSignInSwift */; };
 		A1126B0B3054FEFB00466A97 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = A1126B0A3054FEFB00466A97 /* FirebaseMessaging */; };
+		A1126B603055B77E00466A97 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = A1126B5F3055B77E00466A97 /* FirebaseFunctions */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,12 +47,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1126AF73054F31200466A97 /* GoogleSignIn in Frameworks */,
+				A1126B603055B77E00466A97 /* FirebaseFunctions in Frameworks */,
 				A1126AD43054EE7600466A97 /* FirebaseAuth in Frameworks */,
 				A1126B0B3054FEFB00466A97 /* FirebaseMessaging in Frameworks */,
 				A1126ADA3054EE7600466A97 /* FirebaseStorage in Frameworks */,
 				A1126AF93054F31200466A97 /* GoogleSignInSwift in Frameworks */,
 				A1126AD63054EE7600466A97 /* FirebaseFirestore in Frameworks */,
-				A1126AD83054EE7600466A97 /* FirebaseInAppMessaging-Beta in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,11 +105,11 @@
 			packageProductDependencies = (
 				A1126AD33054EE7600466A97 /* FirebaseAuth */,
 				A1126AD53054EE7600466A97 /* FirebaseFirestore */,
-				A1126AD73054EE7600466A97 /* FirebaseInAppMessaging-Beta */,
 				A1126AD93054EE7600466A97 /* FirebaseStorage */,
 				A1126AF63054F31200466A97 /* GoogleSignIn */,
 				A1126AF83054F31200466A97 /* GoogleSignInSwift */,
 				A1126B0A3054FEFB00466A97 /* FirebaseMessaging */,
+				A1126B5F3055B77E00466A97 /* FirebaseFunctions */,
 			);
 			productName = ebiketrader;
 			productReference = A1126A8A3054EAB100466A97 /* ebiketrader.app */;
@@ -310,7 +310,6 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "eBikeTrader uses your camera so you can photograph your bike while listing it.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -345,7 +344,6 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "eBikeTrader uses your camera so you can photograph your bike while listing it.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -418,11 +416,6 @@
 			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
 		};
-		A1126AD73054EE7600466A97 /* FirebaseInAppMessaging-Beta */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = "FirebaseInAppMessaging-Beta";
-		};
 		A1126AD93054EE7600466A97 /* FirebaseStorage */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
@@ -442,6 +435,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
+		};
+		A1126B5F3055B77E00466A97 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1126AD23054EE7600466A97 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

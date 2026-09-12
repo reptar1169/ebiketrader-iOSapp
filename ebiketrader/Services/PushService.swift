@@ -35,6 +35,18 @@ final class PushService: ObservableObject {
     func refreshAuthorizationStatus() async {
         let settings = await UNUserNotificationCenter.current().notificationSettings()
         authorizationStatus = settings.authorizationStatus
+
+        // Re-register on every launch once authorized, not only at the moment
+        // permission is granted. APNs issues the device token in response to
+        // this call, and without it a already-permitted app never gets one
+        // again after the launch it was first granted on — FCM is then left
+        // holding a cached token nothing can refresh.
+        switch authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            UIApplication.shared.registerForRemoteNotifications()
+        default:
+            break
+        }
     }
 
     /// Asks for permission, then registers with APNs. Worth calling at a
@@ -44,6 +56,7 @@ final class PushService: ObservableObject {
         do {
             let granted = try await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .badge, .sound])
+            print("[push] authorization granted: \(granted)")
             if granted {
                 UIApplication.shared.registerForRemoteNotifications()
             }
@@ -58,6 +71,7 @@ final class PushService: ObservableObject {
     /// bind(uid:) attempt the write.
     func updateToken(_ token: String?) {
         currentToken = token
+        print("[push] FCM token: \(token ?? "nil")")
         persistToken()
     }
 
@@ -84,10 +98,19 @@ final class PushService: ObservableObject {
     }
 
     private func persistToken() {
-        guard let boundUid, let currentToken else { return }
+        guard let boundUid, let currentToken else {
+            print("[push] not persisting yet — uid: \(boundUid ?? "nil"), token: \(currentToken == nil ? "nil" : "present")")
+            return
+        }
         Firestore.firestore().collection("users").document(boundUid).setData(
             ["fcmTokens": FieldValue.arrayUnion([currentToken])],
             merge: true
-        )
+        ) { error in
+            if let error {
+                print("[push] failed to save token: \(error.localizedDescription)")
+            } else {
+                print("[push] token saved to users/\(boundUid)")
+            }
+        }
     }
 }

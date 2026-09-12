@@ -82,6 +82,7 @@ struct ListingFormView: View {
                 }
             }
         }
+        .readableWidth()
         .navigationTitle(isEditing ? "Edit listing" : "List your ebike")
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
@@ -340,7 +341,6 @@ struct ListingFormView: View {
                         input: input,
                         sellerId: uid,
                         sellerName: auth.displayName,
-                        sellerEmail: auth.email,
                         plan: plan,
                         progress: onProgress
                     )

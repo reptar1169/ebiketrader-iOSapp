@@ -6,6 +6,24 @@
 import AuthenticationServices
 import SwiftUI
 
+extension View {
+    /// The sign-in sheet used by every tab that needs an account.
+    ///
+    /// A sheet rather than a pushed screen on purpose: these tabs swap their
+    /// own root the moment sign-in succeeds, and a pushed screen survives
+    /// that swap — leaving the person staring at a form they already
+    /// completed, with no sign that it worked.
+    func signInSheet(isPresented: Binding<Bool>) -> some View {
+        sheet(isPresented: isPresented) {
+            NavigationStack {
+                SignInView(dismissOnSignIn: true)
+                    .navigationTitle("Sign in")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+    }
+}
+
 /// Sign-in and sign-up. Offers the same providers as the website
 /// (email/password and Google) plus Sign in with Apple, which the App Store
 /// requires whenever a third-party login is present.
@@ -67,8 +85,15 @@ struct SignInView: View {
                 submitButton
                 dividerRow
                 providerButtons
+
+                Text("By continuing you agree to the Terms of Use, and confirm you are 18 or older.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                LegalLinksRow()
             }
             .padding(20)
+            .readableWidth(480)
         }
         .background(Color(.systemGroupedBackground))
         .onChange(of: auth.isSignedIn) { _, signedIn in

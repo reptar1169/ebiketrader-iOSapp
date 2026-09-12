@@ -9,8 +9,10 @@ struct InboxView: View {
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var conversations: ConversationStore
     @EnvironmentObject private var push: PushService
+    @EnvironmentObject private var blocks: BlockStore
 
     @State private var openConversation: ConversationSummary?
+    @State private var showSignIn = false
 
     var body: some View {
         NavigationStack {
@@ -20,10 +22,13 @@ struct InboxView: View {
                         Label("Sign in to see messages", systemImage: "bubble.left.and.bubble.right")
                     } description: {
                         Text("Your conversations with buyers and sellers live here.")
+                    } actions: {
+                        Button("Sign in") { showSignIn = true }
+                            .buttonStyle(.borderedProminent)
                     }
                 } else if conversations.isLoading {
                     ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if conversations.conversations.isEmpty {
+                } else if visibleConversations.isEmpty {
                     ContentUnavailableView {
                         Label("No messages yet", systemImage: "bubble.left.and.bubble.right")
                     } description: {
@@ -38,6 +43,7 @@ struct InboxView: View {
                 ThreadView(conversation: conversation)
             }
         }
+        .signInSheet(isPresented: $showSignIn)
         .task {
             // Asked here rather than at launch: iOS shows this prompt exactly
             // once, and it makes far more sense on the screen that's about to
@@ -65,8 +71,18 @@ struct InboxView: View {
         push.pendingConversationId = nil
     }
 
+    /// A blocked person's thread disappears from the inbox. The documents
+    /// stay put — firestore.rules simply stops either side adding to them.
+    private var visibleConversations: [ConversationSummary] {
+        let me = auth.uid ?? ""
+        return conversations.conversations.filter { conversation in
+            let other = conversation.buyerId == me ? conversation.sellerId : conversation.buyerId
+            return !blocks.isBlocked(other)
+        }
+    }
+
     private var list: some View {
-        List(conversations.conversations) { conversation in
+        List(visibleConversations) { conversation in
             NavigationLink {
                 ThreadView(conversation: conversation)
             } label: {

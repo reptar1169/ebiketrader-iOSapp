@@ -11,6 +11,7 @@ import UIKit
 import FirebaseAuth
 import FirebaseCore
 import FirebaseFirestore
+import FirebaseFunctions
 
 // Google sign-in needs the GoogleSignIn-iOS SDK, which is a separate Swift
 // package from Firebase. Guarding on canImport means the app still builds
@@ -187,6 +188,34 @@ final class AuthStore: ObservableObject {
             try Auth.auth().signOut()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: - Account deletion
+
+    /// Erases the account. The work happens in the deleteAccount Cloud
+    /// Function rather than here: it needs the Admin SDK to reach documents
+    /// this client can't (the other side of a conversation, reports), and
+    /// going through Admin also avoids Firebase's "recent login required"
+    /// rule, which would otherwise force a password prompt — impossible to
+    /// satisfy gracefully for someone who signed in with Apple months ago.
+    ///
+    /// Required by App Store Review Guideline 5.1.1(v).
+    func deleteAccount() async -> Bool {
+        isWorking = true
+        errorMessage = nil
+
+        do {
+            _ = try await Functions.functions().httpsCallable("deleteAccount").call()
+            // The Auth user is already gone server-side; this clears the
+            // local session and drops every listener bound to the old uid.
+            try? Auth.auth().signOut()
+            isWorking = false
+            return true
+        } catch {
+            errorMessage = Self.friendlyMessage(for: error)
+            isWorking = false
+            return false
         }
     }
 
