@@ -145,13 +145,7 @@ struct AccountView: View {
         } message: {
             Text("This permanently deletes your account and your listings. It can't be undone.")
         }
-        .overlay {
-            if auth.isWorking {
-                ProgressView("Deleting your account…")
-                    .padding(20)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
-        }
+        .progressOverlay(auth.isWorking, title: "Deleting your account…")
     }
 
     @ViewBuilder

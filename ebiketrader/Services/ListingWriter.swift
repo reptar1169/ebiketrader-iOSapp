@@ -12,7 +12,7 @@ import FirebaseStorage
 /// excludes sellerId/status/favoriteCount/lat/lng/timestamps: those are set
 /// once at creation or maintained server-side, and firestore.rules rejects a
 /// client that tries to change them.
-struct ListingInput {
+struct ListingInput: Equatable {
     var title = ""
     var brand = ""
     var model = ""

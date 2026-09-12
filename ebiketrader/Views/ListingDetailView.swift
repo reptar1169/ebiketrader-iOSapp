@@ -19,7 +19,9 @@ struct ListingDetailView: View {
 
     @State private var showEdit = false
     @State private var confirmDelete = false
-    @State private var isBusy = false
+    /// nil when idle; otherwise what to show in the progress overlay. A Bool
+    /// could not distinguish marking sold from deleting.
+    @State private var busyTitle: String?
     @State private var showReport = false
     @State private var confirmBlock = false
 
@@ -112,6 +114,7 @@ struct ListingDetailView: View {
                 }
             }
         }
+        .progressOverlay(busyTitle != nil, title: busyTitle ?? "")
         .onAppear { store.startIfNeeded() }
         .sheet(isPresented: $showReport) {
             ReportListingSheet(listing: listing)
@@ -128,12 +131,9 @@ struct ListingDetailView: View {
         }
         .sheet(isPresented: $showEdit) {
             NavigationStack {
-                ListingFormView(existing: listing)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") { showEdit = false }
-                        }
-                    }
+                // Cancel lives inside the form now: it is the only thing that
+                // knows whether there are unsaved changes to warn about.
+                ListingFormView(existing: listing, showsCancelButton: true)
             }
         }
         .confirmationDialog(
@@ -248,7 +248,7 @@ struct ListingDetailView: View {
                     Button("Delete", role: .destructive) { confirmDelete = true }
                         .buttonStyle(.bordered)
                 }
-                .disabled(isBusy)
+                .disabled(busyTitle != nil)
             }
         } else {
             Button {
@@ -285,27 +285,29 @@ struct ListingDetailView: View {
     }
 
     private func toggleSold() {
-        isBusy = true
         let next: ListingStatus = listing.status == .sold ? .active : .sold
+        busyTitle = next == .sold ? "Marking as sold…" : "Marking as active…"
         Task {
             do {
                 try await ListingWriter.setStatus(listingId: listing.id, status: next)
             } catch {
                 threadError = error.localizedDescription
             }
-            isBusy = false
+            busyTitle = nil
         }
     }
 
     private func deleteListing() {
-        isBusy = true
+        // Slower than it looks: the document, then every photo out of
+        // Storage one by one.
+        busyTitle = "Deleting your listing…"
         Task {
             do {
                 try await ListingWriter.delete(listingId: listing.id, photoURLs: listing.photos)
                 dismiss()
             } catch {
                 threadError = error.localizedDescription
-                isBusy = false
+                busyTitle = nil
             }
         }
     }

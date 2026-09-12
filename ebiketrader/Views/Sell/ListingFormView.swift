@@ -13,6 +13,10 @@ struct ListingFormView: View {
     /// nil posts a new listing; non-nil edits that one.
     var existing: Listing?
     var onSaved: ((String) -> Void)?
+    /// Set when presented as a sheet. The Cancel button lives here rather
+    /// than with the presenter because only the form knows whether there are
+    /// unsaved changes worth warning about.
+    var showsCancelButton = false
 
     @EnvironmentObject private var auth: AuthStore
     @Environment(\.dismiss) private var dismiss
@@ -34,6 +38,40 @@ struct ListingFormView: View {
     @State private var uploadTotal = 0
     @State private var errorMessage: String?
     @State private var didSeed = false
+
+    @FocusState private var cityFieldFocused: Bool
+
+    /// The form exactly as it was loaded, for comparison against now.
+    @State private var seededSnapshot: FormSnapshot?
+    @State private var confirmDiscard = false
+
+    /// Everything the person can change. The numeric fields are held as text
+    /// until save, so comparing `input` alone would miss an edited price.
+    private struct FormSnapshot: Equatable {
+        var input: ListingInput
+        /// Identities in order, so an added, removed or reordered photo counts.
+        var planIds: [String]
+        var priceText: String
+        var yearText: String
+        var mileageText: String
+        var batteryText: String
+    }
+
+    private var snapshot: FormSnapshot {
+        FormSnapshot(
+            input: input,
+            planIds: plan.map(\.id),
+            priceText: priceText,
+            yearText: yearText,
+            mileageText: mileageText,
+            batteryText: batteryText
+        )
+    }
+
+    private var isDirty: Bool {
+        guard let seededSnapshot else { return false }
+        return seededSnapshot != snapshot
+    }
 
     private var isEditing: Bool { existing != nil }
     private var remainingPhotoSlots: Int { max(0, ListingWriter.maxPhotos - plan.count) }
@@ -76,16 +114,75 @@ struct ListingFormView: View {
                     }
                 }
                 .disabled(isSaving)
-            } footer: {
-                if isSaving && uploadTotal > 0 {
-                    Text("Uploading photo \(min(uploadedCount + 1, uploadTotal)) of \(uploadTotal)…")
-                }
             }
         }
         .readableWidth()
+        .progressOverlay(
+            isSaving,
+            title: isEditing ? "Saving changes…" : "Posting your listing…",
+            detail: uploadTotal > 0
+                ? "Photo \(min(uploadedCount + 1, uploadTotal)) of \(uploadTotal)"
+                : nil
+        )
         .navigationTitle(isEditing ? "Edit listing" : "List your ebike")
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
+        // Suggestion rows rendered inside the Form sat directly under the
+        // city field, which is precisely where the keyboard is — and eight
+        // rows plus a keyboard do not fit on a small phone whatever you do
+        // with scrolling. The keyboard accessory bar cannot be occluded by
+        // the keyboard, so they live there, where QuickType would be.
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                if cityFieldFocused, !citySuggestions.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(citySuggestions, id: \.self) { name in
+                                Button {
+                                    input.city = name
+                                    // Dismissing confirms the choice landed.
+                                    cityFieldFocused = false
+                                } label: {
+                                    Text(name)
+                                        .font(.subheadline)
+                                        .lineLimit(1)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 7)
+                                        .background(Theme.brand.opacity(0.15), in: Capsule())
+                                        .foregroundStyle(Theme.brandDark)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal, 2)
+                    }
+                }
+            }
+
+            if showsCancelButton {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        if isDirty {
+                            confirmDiscard = true
+                        } else {
+                            dismiss()
+                        }
+                    }
+                    .disabled(isSaving)
+                }
+            }
+        }
+        // Only while there is something to lose — a clean form still closes
+        // with a swipe, so this never nags.
+        .interactiveDismissDisabled(isDirty && !isSaving)
+        .confirmationDialog(
+            "Discard your changes?",
+            isPresented: $confirmDiscard,
+            titleVisibility: .visible
+        ) {
+            Button("Discard changes", role: .destructive) { dismiss() }
+            Button("Keep editing", role: .cancel) {}
+        }
         .sheet(isPresented: $showCamera) {
             if CameraPicker.isAvailable {
                 CameraPicker { image in
@@ -250,15 +347,40 @@ struct ListingFormView: View {
         }
     }
 
+    /// State first, then city with suggestions — the same order and the same
+    /// data as the website's form.
     private var locationSection: some View {
         Section {
+            Picker("State", selection: $input.state) {
+                Text("Select a state").tag("")
+                ForEach(usStates, id: \.self) { code in
+                    Text(code).tag(code)
+                }
+            }
+            // 51 entries is too many for a wheel; this pushes a searchable
+            // list instead.
+            .pickerStyle(.navigationLink)
+
             TextField("City", text: $input.city)
-            TextField("State", text: $input.state)
+                .focused($cityFieldFocused)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.words)
         } header: {
             Text("Location")
         } footer: {
-            Text("Used to place your bike on the map. Only the city and state are shown — never an address.")
+            Text(input.state.isEmpty
+                 ? "Pick a state first and the city field will suggest matches as you type."
+                 : "Used to place your bike on the map. Only the city and state are shown — never an address.")
         }
+    }
+
+    /// Shown while the city field has focus and the text is not already an
+    /// exact match — otherwise the list would sit there after you have
+    /// chosen, which reads as though the choice did not register.
+    private var citySuggestions: [String] {
+        guard cityFieldFocused, !input.state.isEmpty else { return [] }
+        guard !CityCatalog.isKnown(input.city, in: input.state) else { return [] }
+        return CityCatalog.suggestions(for: input.city, in: input.state, limit: 6)
     }
 
     // MARK: - Actions
@@ -267,13 +389,43 @@ struct ListingFormView: View {
         guard !didSeed else { return }
         didSeed = true
 
-        guard let existing else { return }
-        input = ListingInput(from: existing)
-        plan = existing.photos.map { PhotoPlanItem.existing(url: $0) }
-        priceText = String(Int(existing.price))
-        yearText = existing.year.map(String.init) ?? ""
-        mileageText = existing.mileageMiles.map(String.init) ?? ""
-        batteryText = existing.batteryHealthPct.map(String.init) ?? ""
+        guard let existing else {
+            // A blank new-listing form: anything typed counts as a change.
+            seededSnapshot = FormSnapshot(
+                input: ListingInput(),
+                planIds: [],
+                priceText: "",
+                yearText: "",
+                mileageText: "",
+                batteryText: ""
+            )
+            return
+        }
+
+        let seededInput = ListingInput(from: existing)
+        let seededPlan = existing.photos.map { PhotoPlanItem.existing(url: $0) }
+        let seededPrice = String(Int(existing.price))
+        let seededYear = existing.year.map(String.init) ?? ""
+        let seededMileage = existing.mileageMiles.map(String.init) ?? ""
+        let seededBattery = existing.batteryHealthPct.map(String.init) ?? ""
+
+        input = seededInput
+        plan = seededPlan
+        priceText = seededPrice
+        yearText = seededYear
+        mileageText = seededMileage
+        batteryText = seededBattery
+
+        // Built from the locals rather than read back out of @State, so the
+        // baseline can't depend on when SwiftUI applies those writes.
+        seededSnapshot = FormSnapshot(
+            input: seededInput,
+            planIds: seededPlan.map(\.id),
+            priceText: seededPrice,
+            yearText: seededYear,
+            mileageText: seededMileage,
+            batteryText: seededBattery
+        )
     }
 
     private func appendImage(_ image: UIImage) {

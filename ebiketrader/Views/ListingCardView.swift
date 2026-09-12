@@ -31,7 +31,10 @@ struct ListingCardView: View {
             Text(listing.title)
                 .font(.subheadline)
                 .foregroundStyle(.primary)
-                .lineLimit(2)
+                // reservesSpace keeps the two lines' worth of height even for
+                // a one-line title, so every card in a row is the same height
+                // and the location lines below stay on a shared baseline.
+                .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
 

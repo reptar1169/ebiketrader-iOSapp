@@ -107,11 +107,7 @@ struct SignInView: View {
 
     private var header: some View {
         VStack(spacing: 6) {
-            Image(systemName: "bicycle")
-                .font(.system(size: 40))
-                .foregroundStyle(Theme.brand)
-            Text("eBikeTrader")
-                .font(.title2.bold())
+            Wordmark(badgeSize: 40, fontSize: 26)
             Text("Save listings, message sellers, and list your own bike.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)

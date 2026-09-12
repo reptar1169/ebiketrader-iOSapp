@@ -44,6 +44,7 @@ struct ContentView: View {
                 .tag(Tab.account)
         }
         .tint(Theme.brand)
+        .minimizesTabBarOnScrollDown()
         .environmentObject(auth)
         .environmentObject(favorites)
         .environmentObject(conversations)
@@ -68,6 +69,23 @@ struct ContentView: View {
         // lets the inbox pick it up and push the thread.
         .onChange(of: push.pendingConversationId) { _, id in
             if id != nil { selectedTab = .messages }
+        }
+    }
+}
+
+extension View {
+    /// Shrinks the tab bar to a capsule as the person scrolls down, and
+    /// restores it when they scroll back up.
+    ///
+    /// iOS 26 only — it is part of the Liquid Glass tab bar — so it is gated
+    /// rather than applied directly, since this app still supports iOS 17
+    /// where the modifier does not exist.
+    @ViewBuilder
+    func minimizesTabBarOnScrollDown() -> some View {
+        if #available(iOS 26.0, *) {
+            self.tabBarMinimizeBehavior(.onScrollDown)
+        } else {
+            self
         }
     }
 }

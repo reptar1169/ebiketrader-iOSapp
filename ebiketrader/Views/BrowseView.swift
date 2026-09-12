@@ -23,12 +23,22 @@ struct BrowseView: View {
         Array(Set(store.listings.map(\.brand).filter { !$0.isEmpty })).sorted()
     }
 
-    private let columns = [GridItem(.adaptive(minimum: 160), spacing: 12)]
+    // alignment: .top because a LazyVGrid centres items in their row by
+    // default — a shorter card would float down against a taller neighbour
+    // instead of starting its photo on the same line.
+    private let columns = [GridItem(.adaptive(minimum: 160), spacing: 12, alignment: .top)]
 
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle("eBikeTrader")
+                // Inline, because a large title cannot host a custom view —
+                // and the wordmark says the name better than text does.
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Wordmark(badgeSize: 26, fontSize: 17)
+                    }
+                }
                 .navigationDestination(for: Listing.self) { listing in
                     ListingDetailView(listing: listing)
                 }
