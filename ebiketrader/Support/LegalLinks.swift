@@ -12,6 +12,9 @@ enum Legal {
     static let privacy = URL(string: "https://ebiketrader.net/privacy")!
     static let terms = URL(string: "https://ebiketrader.net/terms")!
     static let support = URL(string: "https://ebiketrader.net/support")!
+    /// GeoNames is CC BY 4.0, which requires attribution for the bundled
+    /// city list — this is where the app provides it.
+    static let geoNames = URL(string: "https://www.geonames.org")!
 }
 
 /// Compact one-line pair, for the bottom of the sign-in screen.

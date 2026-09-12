@@ -79,6 +79,8 @@ struct AccountView: View {
                 Link(destination: Legal.terms) {
                     Label("Terms of Use", systemImage: "doc.text")
                 }
+            } footer: {
+                Text("City suggestions use place-name data from GeoNames, licensed under CC BY 4.0.")
             }
 
             Section {

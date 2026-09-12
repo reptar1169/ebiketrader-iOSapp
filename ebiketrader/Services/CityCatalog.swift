@@ -25,6 +25,11 @@ let usStates = [
 /// with population >= 1000) flattened into one file keyed by state. To
 /// refresh it, re-run that script and rebuild Resources/cities.json.
 ///
+/// Licensing: the place names originate from GeoNames (geonames.org) and are
+/// CC BY 4.0, which requires attribution — see the Credits row in
+/// AccountView and the Credits section of ebiketrader.net/support. The
+/// all-the-cities package that repackages them is MIT.
+///
 /// The point of all this, as on the web, is to steer sellers toward a
 /// spelling that will actually geocode — the onListingWrite Cloud Function
 /// turns city/state into the coordinates behind the map. A city that isn't
