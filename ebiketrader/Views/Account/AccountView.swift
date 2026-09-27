@@ -69,7 +69,10 @@ struct AccountView: View {
                 }
             }
 
-            Section("Legal") {
+            // Spelled out as header: rather than Section("Legal") because
+            // there is no Section initialiser taking a string title *and* a
+            // footer — the title shorthand only supplies a header.
+            Section {
                 Link(destination: Legal.support) {
                     Label("Help & support", systemImage: "questionmark.circle")
                 }
@@ -79,6 +82,8 @@ struct AccountView: View {
                 Link(destination: Legal.terms) {
                     Label("Terms of Use", systemImage: "doc.text")
                 }
+            } header: {
+                Text("Legal")
             } footer: {
                 Text("City suggestions use place-name data from GeoNames, licensed under CC BY 4.0.")
             }

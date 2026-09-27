@@ -6,17 +6,58 @@
 import SwiftUI
 import UIKit
 
-/// Full-screen photo viewer: swipe between a listing's photos, pinch or
-/// double-tap to zoom, drag to pan while zoomed.
+/// Where a zoomable photo's bytes come from: a Storage URL for one already on
+/// a listing, or an image in memory for one the seller has only just shot or
+/// picked and hasn't uploaded yet.
+enum ZoomablePhotoSource {
+    case remote(URL?)
+    case local(UIImage)
+}
+
+/// Full-screen photo viewer: swipe between photos, pinch or double-tap to
+/// zoom, drag to pan while zoomed.
 struct PhotoViewer: View {
     let photos: [String]
+    let startIndex: Int
+
+    var body: some View {
+        ZoomablePager(
+            sources: photos.map { .remote(URL(string: $0)) },
+            startIndex: startIndex
+        )
+    }
+}
+
+/// The same viewer over a listing form's in-progress photo plan, so a photo
+/// can be checked full screen *before* it is posted rather than only after.
+struct PhotoPlanViewer: View {
+    let plan: [PhotoPlanItem]
+    let startIndex: Int
+
+    var body: some View {
+        ZoomablePager(sources: plan.map(\.zoomableSource), startIndex: startIndex)
+    }
+}
+
+extension PhotoPlanItem {
+    var zoomableSource: ZoomablePhotoSource {
+        switch self {
+        case .existing(let url): return .remote(URL(string: url))
+        case .new(_, let image): return .local(image)
+        }
+    }
+}
+
+/// The paging chrome both viewers share.
+private struct ZoomablePager: View {
+    let sources: [ZoomablePhotoSource]
 
     @State private var index: Int
     @Environment(\.dismiss) private var dismiss
 
-    init(photos: [String], startIndex: Int) {
-        self.photos = photos
-        _index = State(initialValue: min(max(0, startIndex), max(0, photos.count - 1)))
+    init(sources: [ZoomablePhotoSource], startIndex: Int) {
+        self.sources = sources
+        _index = State(initialValue: min(max(0, startIndex), max(0, sources.count - 1)))
     }
 
     var body: some View {
@@ -24,8 +65,8 @@ struct PhotoViewer: View {
             Color.black.ignoresSafeArea()
 
             TabView(selection: $index) {
-                ForEach(photos.indices, id: \.self) { photoIndex in
-                    ZoomablePhoto(url: URL(string: photos[photoIndex]))
+                ForEach(sources.indices, id: \.self) { photoIndex in
+                    ZoomablePhoto(source: sources[photoIndex])
                         .tag(photoIndex)
                 }
             }
@@ -34,8 +75,8 @@ struct PhotoViewer: View {
         }
         .overlay(alignment: .top) {
             HStack {
-                if photos.count > 1 {
-                    Text("\(index + 1) of \(photos.count)")
+                if sources.count > 1 {
+                    Text("\(index + 1) of \(sources.count)")
                         .font(.footnote.weight(.medium))
                         .monospacedDigit()
                         .foregroundStyle(.white.opacity(0.85))
@@ -60,9 +101,10 @@ struct PhotoViewer: View {
     }
 }
 
-/// Loads the photo, then hands it to a UIScrollView to do the zooming.
+/// Resolves the photo to a UIImage, then hands it to a UIScrollView to do the
+/// zooming.
 private struct ZoomablePhoto: View {
-    let url: URL?
+    let source: ZoomablePhotoSource
 
     @State private var image: UIImage?
     @State private var failed = false
@@ -81,16 +123,25 @@ private struct ZoomablePhoto: View {
             }
         }
         .task {
-            guard image == nil, let url else { return }
-            // URLSession's shared cache is the same one AsyncImage used to
-            // draw the gallery thumbnail, so this usually resolves from disk
-            // rather than re-downloading.
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                image = UIImage(data: data)
-                failed = image == nil
-            } catch {
-                failed = true
+            guard image == nil else { return }
+            switch source {
+            case .local(let alreadyLoaded):
+                image = alreadyLoaded
+            case .remote(let url):
+                guard let url else {
+                    failed = true
+                    return
+                }
+                // URLSession's shared cache is the same one AsyncImage used to
+                // draw the gallery thumbnail, so this usually resolves from disk
+                // rather than re-downloading.
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    image = UIImage(data: data)
+                    failed = image == nil
+                } catch {
+                    failed = true
+                }
             }
         }
     }

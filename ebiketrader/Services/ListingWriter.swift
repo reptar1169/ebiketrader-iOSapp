@@ -116,6 +116,17 @@ enum PhotoPlanItem: Identifiable, Hashable {
     }
 }
 
+extension Array where Element == PhotoPlanItem {
+    /// Appends a freshly shot or picked image, respecting the photo cap.
+    /// Returns false when there was no room left.
+    @discardableResult
+    mutating func appendPhoto(_ image: UIImage) -> Bool {
+        guard count < ListingWriter.maxPhotos else { return false }
+        append(.new(id: UUID(), image: image))
+        return true
+    }
+}
+
 enum ListingWriter {
     static let maxPhotos = 8
 
