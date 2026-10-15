@@ -56,7 +56,7 @@ final class PushService: ObservableObject {
         do {
             let granted = try await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .badge, .sound])
-            print("[push] authorization granted: \(granted)")
+            logDebug("[push] authorization granted: \(granted)")
             if granted {
                 UIApplication.shared.registerForRemoteNotifications()
             }
@@ -71,7 +71,11 @@ final class PushService: ObservableObject {
     /// bind(uid:) attempt the write.
     func updateToken(_ token: String?) {
         currentToken = token
-        print("[push] FCM token: \(token ?? "nil")")
+        // The token itself is never logged. It is a bearer credential for
+        // pushing to this device, and it used to be printed in full so it
+        // could be pasted into Firebase Console's "Send test message" while
+        // debugging. Read it from users/{uid}.fcmTokens instead.
+        logDebug("[push] token \(token == nil ? "cleared" : "received")")
         persistToken()
     }
 
@@ -99,7 +103,7 @@ final class PushService: ObservableObject {
 
     private func persistToken() {
         guard let boundUid, let currentToken else {
-            print("[push] not persisting yet — uid: \(boundUid ?? "nil"), token: \(currentToken == nil ? "nil" : "present")")
+            logDebug("[push] not persisting yet — uid: \(boundUid ?? "nil"), token: \(currentToken == nil ? "nil" : "present")")
             return
         }
         Firestore.firestore().collection("users").document(boundUid).setData(
@@ -109,7 +113,7 @@ final class PushService: ObservableObject {
             if let error {
                 print("[push] failed to save token: \(error.localizedDescription)")
             } else {
-                print("[push] token saved to users/\(boundUid)")
+                logDebug("[push] token saved to users/\(boundUid)")
             }
         }
     }
