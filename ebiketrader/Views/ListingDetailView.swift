@@ -37,10 +37,15 @@ struct ListingDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                PhotoGalleryView(photos: listing.photos, isSold: listing.status == .sold)
+                PhotoGalleryView(photos: listing.photos, badge: listing.status.badge)
 
                 VStack(alignment: .leading, spacing: 16) {
                     header
+                    if listing.status == .expired && !isOwner {
+                        Text("This listing has expired and may no longer be available.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                     specs
 
                     if !listing.listingDescription.isEmpty {
@@ -232,9 +237,21 @@ struct ListingDetailView: View {
     private var contactSection: some View {
         if isOwner {
             VStack(alignment: .leading, spacing: 10) {
-                Text("This is your listing")
+                Text(ownerStatusLine)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+
+                if listing.canRenew {
+                    Button {
+                        renew()
+                    } label: {
+                        Text("Renew for \(listingLifetimeDays) days")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Theme.brand)
+                }
 
                 HStack(spacing: 10) {
                     Button("Edit") { showEdit = true }
@@ -250,7 +267,7 @@ struct ListingDetailView: View {
                 }
                 .disabled(busyTitle != nil)
             }
-        } else {
+        } else if listing.status != .expired {
             Button {
                 startConversation()
             } label: {
@@ -284,12 +301,39 @@ struct ListingDetailView: View {
         }
     }
 
+    private var ownerStatusLine: String {
+        if listing.status == .expired {
+            return "Your listing has expired and is hidden from buyers. Renew it to put it back up."
+        }
+        if let line = listing.expiryLine {
+            return "This is your listing · \(line.prefix(1).lowercased() + line.dropFirst())"
+        }
+        return "This is your listing"
+    }
+
     private func toggleSold() {
-        let next: ListingStatus = listing.status == .sold ? .active : .sold
-        busyTitle = next == .sold ? "Marking as sold…" : "Marking as active…"
+        let wasSold = listing.status == .sold
+        busyTitle = wasSold ? "Marking as active…" : "Marking as sold…"
         Task {
             do {
-                try await ListingWriter.setStatus(listingId: listing.id, status: next)
+                // Reactivating renews — see ListingWriter.renew.
+                if wasSold {
+                    try await ListingWriter.renew(listingId: listing.id)
+                } else {
+                    try await ListingWriter.markSold(listingId: listing.id)
+                }
+            } catch {
+                threadError = error.localizedDescription
+            }
+            busyTitle = nil
+        }
+    }
+
+    private func renew() {
+        busyTitle = "Renewing…"
+        Task {
+            do {
+                try await ListingWriter.renew(listingId: listing.id)
             } catch {
                 threadError = error.localizedDescription
             }

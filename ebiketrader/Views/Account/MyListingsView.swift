@@ -47,23 +47,57 @@ private struct MyListingsList: View {
                     Text("Bikes you post will show up here.")
                 }
             } else {
-                List(store.listings) { listing in
-                    NavigationLink {
-                        ListingDetailView(listing: listing)
-                    } label: {
-                        ListingRow(listing: listing)
+                List {
+                    Section {
+                        ForEach(store.listings) { listing in
+                            NavigationLink {
+                                ListingDetailView(listing: listing)
+                            } label: {
+                                ListingRow(listing: listing, showsExpiry: true)
+                            }
+                            .swipeActions(edge: .leading) {
+                                if listing.canRenew {
+                                    Button("Renew") { renew(listing) }
+                                        .tint(Theme.brand)
+                                }
+                            }
+                        }
+                    } footer: {
+                        Text("Listings stay up for \(listingLifetimeDays) days. Swipe right or open one to renew it.")
                     }
                 }
                 .listStyle(.plain)
             }
         }
         .onAppear { store.startIfNeeded() }
+        .alert("Couldn't renew", isPresented: Binding(
+            get: { renewError != nil },
+            set: { if !$0 { renewError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(renewError ?? "")
+        }
+    }
+
+    @State private var renewError: String?
+
+    private func renew(_ listing: Listing) {
+        Task {
+            do {
+                try await ListingWriter.renew(listingId: listing.id)
+            } catch {
+                renewError = error.localizedDescription
+            }
+        }
     }
 }
 
 /// Compact horizontal row — the list counterpart to ListingCardView.
 struct ListingRow: View {
     let listing: Listing
+    /// The seller's own list shows how long each listing has left.
+    var showsExpiry = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -77,8 +111,8 @@ struct ListingRow: View {
                 HStack(spacing: 6) {
                     Text(Format.price(listing.price))
                         .foregroundStyle(Theme.brandDark)
-                    if listing.status == .sold {
-                        Text("SOLD")
+                    if let badge = listing.status.badge {
+                        Text(badge)
                             .font(.caption2.bold())
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -89,6 +123,11 @@ struct ListingRow: View {
                 Text(listing.locationLine)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if showsExpiry, listing.status == .active, let line = listing.expiryLine {
+                    Text(line)
+                        .font(.caption)
+                        .foregroundStyle(listing.canRenew ? .orange : .secondary)
+                }
             }
         }
         .padding(.vertical, 4)

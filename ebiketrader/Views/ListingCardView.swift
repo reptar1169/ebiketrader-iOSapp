@@ -13,8 +13,8 @@ struct ListingCardView: View {
         VStack(alignment: .leading, spacing: 6) {
             ListingPhotoBox(url: listing.primaryPhoto)
                 .overlay(alignment: .topLeading) {
-                    if listing.status == .sold {
-                        Text("SOLD")
+                    if let badge = listing.status.badge {
+                        Text(badge)
                             .font(.caption2.bold())
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)

@@ -240,6 +240,8 @@ enum ListingWriter {
         // firestore.rules requires this to be exactly 0 on create, and lat/lng
         // to be absent — they're filled in by the geocoding Cloud Function.
         data["favoriteCount"] = 0
+        // Starts the 30-day clock; firestore.rules requires server time.
+        data["renewedAt"] = FieldValue.serverTimestamp()
         data["createdAt"] = FieldValue.serverTimestamp()
         data["updatedAt"] = FieldValue.serverTimestamp()
 
@@ -289,12 +291,27 @@ enum ListingWriter {
             .updateData(data)
     }
 
-    static func setStatus(listingId: String, status: ListingStatus) async throws {
+    static func markSold(listingId: String) async throws {
         try await Firestore.firestore()
             .collection("listings")
             .document(listingId)
             .updateData([
-                "status": status.rawValue,
+                "status": ListingStatus.sold.rawValue,
+                "updatedAt": FieldValue.serverTimestamp(),
+            ])
+    }
+
+    /// Port of renewListing(): back to active for another 30 days. Also how a
+    /// sold listing is reactivated, or one sold over a month ago would just
+    /// expire again. Leaves createdAt alone, so renewing doesn't bump it up
+    /// the newest-first feed.
+    static func renew(listingId: String) async throws {
+        try await Firestore.firestore()
+            .collection("listings")
+            .document(listingId)
+            .updateData([
+                "status": ListingStatus.active.rawValue,
+                "renewedAt": FieldValue.serverTimestamp(),
                 "updatedAt": FieldValue.serverTimestamp(),
             ])
     }

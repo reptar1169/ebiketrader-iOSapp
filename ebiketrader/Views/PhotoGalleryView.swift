@@ -8,7 +8,8 @@ import SwiftUI
 /// Swipeable gallery at the top of a listing. Mirrors ListingGallery.tsx.
 struct PhotoGalleryView: View {
     let photos: [String]
-    let isSold: Bool
+    /// "SOLD" / "EXPIRED" over the photos; nil for a live listing.
+    let badge: String?
 
     @State private var index = 0
     @State private var showViewer = false
@@ -59,8 +60,8 @@ struct PhotoGalleryView: View {
             }
         }
         .overlay(alignment: .topLeading) {
-            if isSold {
-                Text("SOLD")
+            if let badge {
+                Text(badge)
                     .font(.caption.bold())
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)

@@ -44,9 +44,27 @@ let motorTypes = [
     "Other / not sure",
 ]
 
+/// How long a listing stays up after it's posted or renewed. Keep in sync
+/// with LISTING_LIFETIME_DAYS in functions/index.js and src/lib/types.ts.
+let listingLifetimeDays = 30
+/// The owner is offered "Renew" once a live listing is this close to expiring.
+let renewWindowDays = 7
+private let dayMillis: Double = 24 * 60 * 60 * 1000
+
 enum ListingStatus: String, Hashable {
     case active
     case sold
+    /// Only ever set by the expireListings Cloud Function.
+    case expired
+
+    /// The overlay on the listing's photo; nil for a live listing.
+    var badge: String? {
+        switch self {
+        case .active: return nil
+        case .sold: return "SOLD"
+        case .expired: return "EXPIRED"
+        }
+    }
 }
 
 struct Listing: Identifiable, Hashable {
@@ -77,6 +95,9 @@ struct Listing: Identifiable, Hashable {
     /// Maintained server-side by the favorite Cloud Function triggers; also
     /// read-only to clients per firestore.rules.
     var favoriteCount: Int
+    /// Start of the current 30-day window: set on creation, reset by
+    /// ListingWriter.renew. nil only on old listings not yet backfilled.
+    var renewedAt: Double?
     /// Epoch milliseconds (see FirestoreValue.millis).
     var createdAt: Double?
     var updatedAt: Double?
@@ -102,6 +123,38 @@ struct Listing: Identifiable, Hashable {
 
     var webURL: URL? {
         URL(string: "https://ebiketrader.net/listing/\(id)")
+    }
+
+    /// When a live listing expires (epoch ms), or nil if it isn't counting down.
+    var expiresAt: Double? {
+        guard status == .active, let start = renewedAt ?? createdAt else { return nil }
+        return start + Double(listingLifetimeDays) * dayMillis
+    }
+
+    /// Whole days until expiry, rounded up — 0 means today.
+    var daysUntilExpiry: Int? {
+        guard let expiresAt else { return nil }
+        let remaining = expiresAt - Date().timeIntervalSince1970 * 1000
+        return max(0, Int((remaining / dayMillis).rounded(.up)))
+    }
+
+    /// Expired, or live and inside the renew window. Sold listings come back
+    /// through "Mark active", which renews them too.
+    var canRenew: Bool {
+        if status == .expired { return true }
+        guard let days = daysUntilExpiry else { return false }
+        return days <= renewWindowDays
+    }
+
+    /// "Expires in 3 days" for the owner; nil for sold listings.
+    var expiryLine: String? {
+        if status == .expired { return "Expired" }
+        switch daysUntilExpiry {
+        case nil: return nil
+        case 0: return "Expires today"
+        case 1: return "Expires in 1 day"
+        case let days?: return "Expires in \(days) days"
+        }
     }
 }
 
@@ -133,6 +186,7 @@ extension Listing {
         self.sellerName = FirestoreValue.string(data["sellerName"], default: "Seller")
         self.status = ListingStatus(rawValue: FirestoreValue.string(data["status"])) ?? .active
         self.favoriteCount = FirestoreValue.int(data["favoriteCount"]) ?? 0
+        self.renewedAt = FirestoreValue.millis(data["renewedAt"])
         self.createdAt = FirestoreValue.millis(data["createdAt"])
         self.updatedAt = FirestoreValue.millis(data["updatedAt"])
     }
