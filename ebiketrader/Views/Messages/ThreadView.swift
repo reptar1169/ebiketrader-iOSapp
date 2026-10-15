@@ -14,6 +14,7 @@ struct ThreadView: View {
     @State private var draft = ""
     @State private var pendingDeletion: Message?
     @State private var confirmBlock = false
+    @State private var showReport = false
     @State private var blockError: String?
 
     @Environment(\.dismiss) private var dismiss
@@ -39,6 +40,11 @@ struct ThreadView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    Button {
+                        showReport = true
+                    } label: {
+                        Label("Report this conversation", systemImage: "flag")
+                    }
                     Button(role: .destructive) {
                         confirmBlock = true
                     } label: {
@@ -73,6 +79,9 @@ struct ThreadView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This conversation will disappear from your inbox and neither of you will be able to message the other. You can undo this under Account → Blocked users.")
+        }
+        .sheet(isPresented: $showReport) {
+            ReportConversationSheet(conversation: conversation)
         }
         .onAppear {
             store.startIfNeeded()
